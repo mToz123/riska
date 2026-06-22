@@ -24,3 +24,7 @@ Thumbs.db
 # Build (jika ada)
 dist/
 build/
+
+# Backups
+backups/
+*.bak
