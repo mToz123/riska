@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Uploads - JANGAN PUSH KE GITHUB!
+backend/uploads/
+backend/metadata.json
+
+# Environment
+.env
+.env.local
+
+# System
+.DS_Store
+Thumbs.db
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build (jika ada)
+dist/
+build/

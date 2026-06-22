@@ -1,0 +1,22 @@
+{
+  "name": "wedding-gallery-v17",
+  "version": "1.0.0",
+  "description": "Wedding Gallery with Days Counter, Cloudinary, 100 photos batch upload",
+  "main": "backend/server-cloudinary.js",
+  "scripts": {
+    "start": "node backend/server-cloudinary.js",
+    "dev": "node backend/server.js",
+    "local": "node backend/server.js"
+  },
+  "keywords": ["wedding", "gallery", "cloudinary", "photo-upload"],
+  "author": "Maryadi & Riska",
+  "license": "MIT",
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "cloudinary": "^2.5.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}
