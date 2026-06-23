@@ -359,6 +359,22 @@
     <input type="file" id="lightbox-replace-input" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" hidden>
   </div>
 
+  <!-- MUSIC PLAYER -->
+  <button class="music-toggle" id="music-toggle" type="button" aria-label="Putar musik romantis" title="Putar musik">
+    <svg class="music-icon music-icon-play" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M8 5v14l11-7z"/>
+    </svg>
+    <svg class="music-icon music-icon-pause" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+      <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+    </svg>
+    <span class="music-wave">
+      <span></span><span></span><span></span>
+    </span>
+  </button>
+  <audio id="bg-music" loop preload="none">
+    <source src="/music/romantic-bg.mp3" type="audio/mpeg">
+  </audio>
+
   <!-- TOAST -->
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 

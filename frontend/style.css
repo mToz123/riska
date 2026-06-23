@@ -352,3 +352,28 @@ main,header,footer{position:relative;z-index:1}
 @media(prefers-reduced-motion:reduce){
   .heart-particle{display:none}
 }
+
+/* ============================================================
+   MUSIC PLAYER — Floating button putar musik romantis
+   ============================================================ */
+.music-toggle{position:fixed;bottom:var(--s-6);right:var(--s-6);z-index:110;width:56px;height:56px;background:linear-gradient(135deg,var(--rose),var(--rose-strong));border:2px solid var(--rose-strong);border-radius:50%;box-shadow:0 8px 24px rgba(217,113,138,0.4),0 0 0 0 rgba(217,113,138,0.6);cursor:pointer;display:grid;place-items:center;transition:all 0.3s var(--ease-out);animation:musicPulse 2s ease-in-out infinite}
+.music-toggle:hover{transform:scale(1.1);box-shadow:0 12px 32px rgba(217,113,138,0.6)}
+.music-toggle:active{transform:scale(0.95)}
+.music-toggle.is-playing{animation:musicPulse 1s ease-in-out infinite}
+@keyframes musicPulse{0%,100%{box-shadow:0 8px 24px rgba(217,113,138,0.4),0 0 0 0 rgba(217,113,138,0.6)}50%{box-shadow:0 8px 24px rgba(217,113,138,0.4),0 0 0 12px rgba(217,113,138,0)}}
+.music-icon{width:24px;height:24px;color:#fff;transition:opacity 0.2s var(--ease-out)}
+.music-wave{position:absolute;bottom:4px;right:4px;display:flex;gap:2px;opacity:0;transition:opacity 0.3s var(--ease-out)}
+.music-toggle.is-playing .music-wave{opacity:1}
+.music-wave span{display:block;width:3px;background:#fff;border-radius:2px;animation:waveBar 0.8s ease-in-out infinite}
+.music-wave span:nth-child(1){height:8px;animation-delay:0s}
+.music-wave span:nth-child(2){height:12px;animation-delay:0.2s}
+.music-wave span:nth-child(3){height:6px;animation-delay:0.4s}
+@keyframes waveBar{0%,100%{transform:scaleY(0.5)}50%{transform:scaleY(1)}}
+@media(max-width:768px){
+  .music-toggle{bottom:calc(var(--s-6) + 80px);width:48px;height:48px}
+  .music-icon{width:20px;height:20px}
+}
+@media(prefers-reduced-motion:reduce){
+  .music-toggle{animation:none}
+  .music-wave span{animation:none;transform:scaleY(0.7)}
+}

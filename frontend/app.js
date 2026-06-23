@@ -710,6 +710,48 @@
     }
     window.applyFilters = applyFilters; // Expose for renderGallery
 
+    // === Music Player ===
+    const musicToggle = document.getElementById('music-toggle');
+    const bgMusic = document.getElementById('bg-music');
+    const musicIconPlay = musicToggle?.querySelector('.music-icon-play');
+    const musicIconPause = musicToggle?.querySelector('.music-icon-pause');
+    let isPlaying = false;
+
+    if (musicToggle && bgMusic) {
+      bgMusic.volume = 0.3; // 30% volume default
+      
+      musicToggle.addEventListener('click', () => {
+        if (isPlaying) {
+          bgMusic.pause();
+          isPlaying = false;
+          musicToggle.classList.remove('is-playing');
+          musicToggle.setAttribute('aria-label', 'Putar musik romantis');
+          musicToggle.setAttribute('title', 'Putar musik');
+          if (musicIconPlay) musicIconPlay.style.display = '';
+          if (musicIconPause) musicIconPause.style.display = 'none';
+        } else {
+          bgMusic.play().then(() => {
+            isPlaying = true;
+            musicToggle.classList.add('is-playing');
+            musicToggle.setAttribute('aria-label', 'Hentikan musik');
+            musicToggle.setAttribute('title', 'Hentikan musik');
+            if (musicIconPlay) musicIconPlay.style.display = 'none';
+            if (musicIconPause) musicIconPause.style.display = '';
+          }).catch(err => {
+            showToast('Gagal memutar musik', 'error');
+            console.error('Music play error:', err);
+          });
+        }
+      });
+
+      // Auto-pause when user leaves page
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && isPlaying) {
+          bgMusic.pause();
+        }
+      });
+    }
+
     fetchPhotos();
   }
 
