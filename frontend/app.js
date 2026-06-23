@@ -435,6 +435,38 @@
         }
       });
 
+      // === 3D Tilt Effect ===
+      // Touch/mouse interaksi bikin card goyang dengan perspective 3D
+      let tiltRAF = null;
+      const applyTilt = (rect, clientX, clientY) => {
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -8; // max ±8deg
+        const rotateY = ((x - centerX) / centerX) * 8;
+        if (tiltRAF) cancelAnimationFrame(tiltRAF);
+        tiltRAF = requestAnimationFrame(() => {
+          item.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+        });
+      };
+      const resetTilt = () => {
+        if (tiltRAF) cancelAnimationFrame(tiltRAF);
+        item.style.transform = '';
+      };
+      item.addEventListener('mousemove', (e) => {
+        const rect = item.getBoundingClientRect();
+        applyTilt(rect, e.clientX, e.clientY);
+      });
+      item.addEventListener('mouseleave', resetTilt);
+      item.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1) {
+          const rect = item.getBoundingClientRect();
+          applyTilt(rect, e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, {passive: true});
+      item.addEventListener('touchend', resetTilt);
+
       els.gallery.appendChild(item);
     });
   }
@@ -575,4 +607,84 @@
   } else {
     init();
   }
+
+  // ============================================================
+  // STAR TRAIL PARTICLES — Bintang mengikuti scroll/touch
+  // ============================================================
+  const starCanvas = document.createElement('canvas');
+  starCanvas.className = 'star-trail-canvas';
+  starCanvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;mix-blend-mode:screen;opacity:0.85';
+  document.body.appendChild(starCanvas);
+  const ctx = starCanvas.getContext('2d');
+  const stars = [];
+  const maxStars = 80;
+
+  function resizeCanvas() {
+    starCanvas.width = window.innerWidth;
+    starCanvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  function createStar(x, y) {
+    const size = Math.random() * 2 + 1;
+    const vx = (Math.random() - 0.5) * 1.5;
+    const vy = (Math.random() - 0.5) * 1.5;
+    const life = 60 + Math.random() * 30; // 1-1.5s at 60fps
+    stars.push({x, y, vx, vy, size, life, age: 0, opacity: 1});
+    if (stars.length > maxStars) stars.shift();
+  }
+
+  function updateStars() {
+    ctx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+    for (let i = stars.length - 1; i >= 0; i--) {
+      const s = stars[i];
+      s.age++;
+      s.x += s.vx;
+      s.y += s.vy;
+      s.opacity = 1 - (s.age / s.life);
+      if (s.age >= s.life || s.opacity <= 0) {
+        stars.splice(i, 1);
+        continue;
+      }
+      ctx.fillStyle = `rgba(255, 215, 130, ${s.opacity * 0.9})`;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    requestAnimationFrame(updateStars);
+  }
+  updateStars();
+
+  // Spawn stars on mouse move (throttle)
+  let lastStarTime = 0;
+  document.addEventListener('mousemove', (e) => {
+    const now = Date.now();
+    if (now - lastStarTime > 50) {
+      createStar(e.clientX, e.clientY);
+      lastStarTime = now;
+    }
+  });
+
+  // Spawn stars on touch move
+  document.addEventListener('touchmove', (e) => {
+    const now = Date.now();
+    if (now - lastStarTime > 50 && e.touches.length > 0) {
+      createStar(e.touches[0].clientX, e.touches[0].clientY);
+      lastStarTime = now;
+    }
+  }, {passive: true});
+
+  // Spawn stars on scroll (a bit)
+  let lastScrollY = window.scrollY;
+  window.addEventListener('scroll', () => {
+    const delta = Math.abs(window.scrollY - lastScrollY);
+    if (delta > 10) {
+      const x = window.innerWidth / 2 + (Math.random() - 0.5) * 200;
+      const y = window.innerHeight / 2 + (Math.random() - 0.5) * 200;
+      createStar(x, y);
+      lastScrollY = window.scrollY;
+    }
+  }, {passive: true});
+
 })();
