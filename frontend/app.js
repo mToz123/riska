@@ -1,5 +1,5 @@
-/* ============================================================
-   GALLERY MARYADI & RISKA — V17 App Logic
+﻿/* ============================================================
+   GALLERY MARYADI & RISKA â€” V17 App Logic
    Days Counter, Scroll Reveal, Pin, Replace, Featured
    ============================================================ */
 
@@ -14,11 +14,35 @@
   // ============================================================
   // PASSWORD GATE
   // ============================================================
-  // Client-side gate — cocok untuk gallery pribadi 2 orang.
-  // Bukan security-grade, tapi cukup untuk nahan tamu случайный.
+  // Client-side gate â€” cocok untuk gallery pribadi 2 orang.
+  // Bukan security-grade, tapi cukup untuk nahan tamu ÑÐ»ÑƒÑ‡Ð°Ð¹Ð½Ñ‹Ð¹.
   // Hash sederhana (bukan crypto) supaya tidak kelihatan plaintext di DevTools.
-  const GATE_HASH = '589dfcd1'; // FNV-1a fingerprint of 'riska'
-  const GATE_SESSION_KEY = 'wedding-gallery-unlocked';
+  // ============================================================
+  // TOAST NOTIFICATION SYSTEM
+  // ============================================================
+  const toastContainer = document.createElement('div');
+  toastContainer.className = 'toast-container';
+  document.body.appendChild(toastContainer);
+
+  function showToast(message, type = 'info', duration = 4000) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    const icon = {
+      success: 'âœ“',
+      error: 'âœ•',
+      info: 'i',
+      warning: '!'
+    }[type] || 'i';
+    toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-message">${message}</span>`;
+    toastContainer.appendChild(toast);
+    // Trigger reflow for animation
+    toast.offsetHeight;
+    toast.classList.add('toast-show');
+    setTimeout(() => {
+      toast.classList.remove('toast-show');
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
 
   const gate = document.getElementById('gate');
   const gateForm = document.getElementById('gate-form');
@@ -26,7 +50,7 @@
   const gateError = document.getElementById('gate-error');
   const gateSubmit = gateForm ? gateForm.querySelector('button[type="submit"]') : null;
 
-  // Lightweight hash (FNV-1a 32-bit) — konsisten antara runs, cukup untuk fingerprint sederhana
+  // Lightweight hash (FNV-1a 32-bit) â€” konsisten antara runs, cukup untuk fingerprint sederhana
   function fingerprint(str) {
     let h = 0x811c9dc5;
     for (let i = 0; i < str.length; i++) {
@@ -182,17 +206,8 @@
     revealElements.forEach(el => observer.observe(el));
   }
 
-  function toast(message, type = 'info') {
-    const el = document.createElement('div');
-    el.className = `toast ${type}`;
-    el.textContent = message;
-    els.toastRegion.appendChild(el);
-    setTimeout(() => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateX(20px)';
-      el.style.transition = 'all 0.3s';
-      setTimeout(() => el.remove(), 300);
-    }, 3200);
+  function showToast(message, type = 'info') {
+    // Old implementation removed, using new toast system at top of file
   }
 
   function fmtSize(bytes) {
@@ -223,38 +238,70 @@
       currentPinned = json.pinned || null;
       renderAll();
     } catch (e) {
-      toast('Gagal memuat galeri', 'error');
+      showToast('Gagal memuat galeri', 'error');
       console.error(e);
     }
   }
 
   async function uploadPhotos(files) {
     if (!files.length) return;
-    if (files.length > 100) { toast('Maksimal 100 foto sekaligus', 'error'); return; }
+    if (files.length > 100) { showToast('Maksimal 100 foto sekaligus', 'error'); return; }
     const oversized = Array.from(files).filter(f => f.size > 15 * 1024 * 1024);
-    if (oversized.length) { toast(`${oversized.length} foto lebih dari 15MB`, 'error'); return; }
+    if (oversized.length) { showToast(`${oversized.length} foto lebih dari 15MB`, 'error'); return; }
 
     const form = new FormData();
     Array.from(files).forEach(f => form.append('photos', f));
 
-    els.uploadStatus.textContent = `Mengunggah ${files.length} foto…`;
+    // Progress bar overlay
+    const progressOverlay = document.createElement('div');
+    progressOverlay.className = 'upload-progress-overlay';
+    progressOverlay.innerHTML = `
+      <div class="upload-progress-card">
+        <h3>Mengunggah ${files.length} foto...</h3>
+        <div class="progress-bar"><div class="progress-fill" id="upload-progress-fill"></div></div>
+        <p id="upload-progress-text">0%</p>
+      </div>
+    `;
+    document.body.appendChild(progressOverlay);
+    const progressFill = document.getElementById('upload-progress-fill');
+    const progressText = document.getElementById('upload-progress-text');
 
-    try {
-      const res = await fetch(`${API}/api/upload`, { method: 'POST', body: form });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Upload gagal');
-      }
-      const json = await res.json();
-      toast(`${json.data.length} foto berhasil diunggah`, 'success');
-      els.uploadStatus.textContent = `${json.data.length} foto diunggah · ${fmtSize(files.reduce((a, f) => a + f.size, 0))}`;
-      setTimeout(() => { els.uploadStatus.textContent = ''; }, 4000);
-      await fetchPhotos();
-    } catch (e) {
-      toast(e.message || 'Gagal mengunggah', 'error');
-      els.uploadStatus.textContent = '';
-      console.error(e);
-    }
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API}/api/upload`);
+      
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          progressFill.style.width = percent + '%';
+          progressText.textContent = percent + '%';
+        }
+      };
+      
+      xhr.onload = async () => {
+        progressOverlay.remove();
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const json = JSON.parse(xhr.responseText);
+          showToast(`${json.data.length} foto berhasil diunggah`, 'success');
+          els.uploadStatus.textContent = `${json.data.length} foto diunggah Â· ${fmtSize(files.reduce((a, f) => a + f.size, 0))}`;
+          setTimeout(() => { els.uploadStatus.textContent = ''; }, 4000);
+          await fetchPhotos();
+          resolve();
+        } else {
+          const err = JSON.parse(xhr.responseText || '{}');
+          showToast(err.message || 'Upload gagal', 'error');
+          reject(new Error(err.message || 'Upload gagal'));
+        }
+      };
+      
+      xhr.onerror = () => {
+        progressOverlay.remove();
+        showToast('Gagal mengunggah', 'error');
+        reject(new Error('Network error'));
+      };
+      
+      xhr.send(form);
+    });
   }
 
   async function deletePhoto(filename) {
@@ -262,11 +309,11 @@
     try {
       const res = await fetch(`${API}/api/photos/${encodeURIComponent(filename)}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Gagal menghapus');
-      toast('Foto dihapus', 'success');
+      showToast('Foto dihapus', 'success');
       closeLightbox();
       await fetchPhotos();
     } catch (e) {
-      toast(e.message, 'error');
+      showToast(e.message, 'error');
     }
   }
 
@@ -275,16 +322,16 @@
       const res = await fetch(`${API}/api/photos/${encodeURIComponent(filename)}/pin`, { method: 'PUT' });
       if (!res.ok) throw new Error('Gagal memperbarui momen utama');
       const json = await res.json();
-      toast(json.pinned ? `★ "${shortName(filename)}" dijadikan momen utama` : 'Pin dilepas', 'success');
+      showToast(json.pinned ? `â˜… "${shortName(filename)}" dijadikan momen utama` : 'Pin dilepas', 'success');
       await fetchPhotos();
     } catch (e) {
-      toast(e.message, 'error');
+      showToast(e.message, 'error');
     }
   }
 
   async function replacePhoto(oldFilename, newFile) {
     if (!newFile) return;
-    if (newFile.size > 10 * 1024 * 1024) { toast('File lebih dari 10MB', 'error'); return; }
+    if (newFile.size > 10 * 1024 * 1024) { showToast('File lebih dari 10MB', 'error'); return; }
 
     const form = new FormData();
     form.append('photo', newFile);
@@ -298,11 +345,11 @@
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || 'Gagal mengganti foto');
       }
-      toast('Foto diganti', 'success');
+      showToast('Foto diganti', 'success');
       closeLightbox();
       await fetchPhotos();
     } catch (e) {
-      toast(e.message, 'error');
+      showToast(e.message, 'error');
     }
   }
 
@@ -322,10 +369,10 @@
     // Meta count
     const count = photos.length;
     if (els.metaCount) {
-      els.metaCount.textContent = count === 0 ? '—' : count.toString().padStart(2, '0');
+      els.metaCount.textContent = count === 0 ? 'â€”' : count.toString().padStart(2, '0');
     }
     if (els.heroPhotoCount) {
-      els.heroPhotoCount.textContent = count === 0 ? '—' : count;
+      els.heroPhotoCount.textContent = count === 0 ? 'â€”' : count;
     }
 
     renderFeatured();
@@ -345,8 +392,8 @@
 
     els.featuredSection.hidden = false;
     els.featuredImg.src = `${API}${pinnedPhoto.url}`;
-    els.featuredImg.alt = `Momen utama — ${shortName(currentPinned)}`;
-    els.featuredCaption.textContent = `★ ${shortName(currentPinned)} · ${fmtSize(pinnedPhoto.size)} · ${fmtDate(pinnedPhoto.uploaded)}`;
+    els.featuredImg.alt = `Momen utama â€” ${shortName(currentPinned)}`;
+    els.featuredCaption.textContent = `â˜… ${shortName(currentPinned)} Â· ${fmtSize(pinnedPhoto.size)} Â· ${fmtDate(pinnedPhoto.uploaded)}`;
 
     els.featuredChange.onclick = () => {
       els.replaceInput.dataset.targetFilename = currentPinned;
@@ -375,7 +422,7 @@
         const pin = document.createElement('div');
         pin.className = 'gallery-item-pin';
         pin.setAttribute('aria-hidden', 'true');
-        pin.textContent = '★';
+        pin.textContent = 'â˜…';
         item.appendChild(pin);
       }
 
@@ -443,7 +490,7 @@
         const y = clientY - rect.top;
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
-        const rotateX = ((y - centerY) / centerY) * -8; // max ±8deg
+        const rotateX = ((y - centerY) / centerY) * -8; // max Â±8deg
         const rotateY = ((x - centerX) / centerX) * 8;
         if (tiltRAF) cancelAnimationFrame(tiltRAF);
         tiltRAF = requestAnimationFrame(() => {
@@ -469,6 +516,11 @@
 
       els.gallery.appendChild(item);
     });
+    
+    // Apply search/filter after rendering
+    if (typeof window.applyFilters === 'function') {
+      window.applyFilters();
+    }
   }
 
   // === Lightbox ===
@@ -552,7 +604,7 @@
           els.uploadZone.classList.remove('drag-over');
           const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
           if (files.length) uploadPhotos(files);
-          else toast('File harus berupa gambar', 'error');
+          else showToast('File harus berupa gambar', 'error');
         }
       })
     );
@@ -599,6 +651,62 @@
 
     els.downloadAllBtn.addEventListener('click', downloadAll);
 
+    // === Swipe gesture for lightbox ===
+    let touchStartX = 0;
+    let touchEndX = 0;
+    els.lightbox.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+    els.lightbox.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      const diff = touchStartX - touchEndX;
+      if (Math.abs(diff) > 50) { // min 50px swipe
+        if (diff > 0) nextPhoto(); // swipe left = next
+        else prevPhoto(); // swipe right = prev
+      }
+    }, {passive: true});
+
+    // === Search & Filter ===
+    const searchInput = document.getElementById('gallery-search');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value.toLowerCase();
+        applyFilters();
+      });
+    }
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        applyFilters();
+      });
+    });
+
+    function applyFilters() {
+      const items = document.querySelectorAll('.gallery-item');
+      items.forEach((item, index) => {
+        const photo = photos[index];
+        if (!photo) return;
+        let show = true;
+        // Filter logic
+        if (currentFilter === 'pinned' && !photo.pinned) show = false;
+        if (currentFilter === 'recent') {
+          const age = Date.now() - new Date(photo.uploaded).getTime();
+          if (age > 7 * 24 * 60 * 60 * 1000) show = false; // 7 days
+        }
+        // Search logic
+        if (searchQuery && !photo.filename.toLowerCase().includes(searchQuery)) show = false;
+        item.style.display = show ? '' : 'none';
+      });
+    }
+    window.applyFilters = applyFilters; // Expose for renderGallery
+
     fetchPhotos();
   }
 
@@ -609,7 +717,7 @@
   }
 
   // ============================================================
-  // STAR TRAIL PARTICLES — Bintang mengikuti scroll/touch
+  // STAR TRAIL PARTICLES â€” Bintang mengikuti scroll/touch
   // ============================================================
   const starCanvas = document.createElement('canvas');
   starCanvas.className = 'star-trail-canvas';

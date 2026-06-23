@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Gallery Maryadi & Riska — Koleksi foto cinta kita berdua. Sebuah perjalanan visual dalam setiap frame.">
   <title>Gallery — Maryadi & Riska</title>
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://maryadi-riska.vercel.app/">
+  <meta property="og:title" content="Gallery Maryadi & Riska">
+  <meta property="og:description" content="Koleksi foto cinta kami berdua. Sebuah perjalanan visual dalam setiap frame — sejak 14 Februari 2024.">
+  <meta property="og:image" content="https://maryadi-riska.vercel.app/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Gallery Maryadi & Riska">
+  <meta name="twitter:description" content="Koleksi foto cinta kami berdua — sejak 14 Februari 2024.">
+  <meta name="twitter:image" content="https://maryadi-riska.vercel.app/og-image.jpg">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E❤%3C/text%3E%3C/svg%3E">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -211,6 +228,19 @@
         <p class="section-lede">
           Klik foto untuk melihat lebih dekat. Klik ikon ★ untuk menjadikan momen utama, atau ikon unduh untuk menyimpan.
         </p>
+      </div>
+
+      <!-- SEARCH & FILTER -->
+      <div class="gallery-controls">
+        <div class="search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="search" id="gallery-search" placeholder="Cari foto..." aria-label="Cari foto">
+        </div>
+        <div class="filter-group">
+          <button class="filter-btn active" data-filter="all">Semua</button>
+          <button class="filter-btn" data-filter="pinned">★ Utama</button>
+          <button class="filter-btn" data-filter="recent">Terbaru</button>
+        </div>
       </div>
 
       <div class="gallery-grid" id="gallery" role="list" aria-label="Galeri foto">
