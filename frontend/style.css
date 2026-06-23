@@ -98,13 +98,13 @@ main,header,footer{position:relative;z-index:1}
 @media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:var(--s-12)}}
 .hero-copy{max-width:36rem}
 .hero-title{font-family:var(--font-display);font-weight:300;font-size:clamp(2.5rem,5.5vw,4.5rem);line-height:1.04;letter-spacing:-0.025em;margin-bottom:var(--s-6);font-variation-settings:'opsz' 144,'SOFT' 0}
-.title-line{display:block;opacity:0;transform:translateY(20px);animation:titleIn 0.8s var(--ease-out) forwards}
-.title-line-1{animation-delay:0.05s}
-.title-line-2{animation-delay:0.18s}
-.title-line-3{animation-delay:0.32s;padding-left:1.5rem}
-.title-line-4{animation-delay:0.46s;padding-left:1.5rem}
+.title-line{display:block;opacity:0;transform:translateX(-30px) translateY(10px);animation:titleSlideIn 0.9s var(--ease-out) forwards}
+.title-line-1{animation-delay:0.1s}
+.title-line-2{animation-delay:0.25s}
+.title-line-3{animation-delay:0.4s}
+.title-line-4{animation-delay:0.55s}
 .title-line em{font-style:italic;color:var(--rose);font-variation-settings:'opsz' 144,'SOFT' 100}
-@keyframes titleIn{to{opacity:1;transform:translateY(0)}}
+@keyframes titleSlideIn{to{opacity:1;transform:translateX(0) translateY(0)}}
 .hero-sub{font-size:1.0625rem;line-height:1.65;color:var(--ink-soft);max-width:32rem;margin-bottom:var(--s-8);opacity:0;animation:fadeIn 0.8s var(--ease-out) 0.65s forwards}
 @keyframes fadeIn{to{opacity:1}}
 .hero-cta{display:flex;gap:var(--s-3);flex-wrap:wrap;margin-bottom:var(--s-12);opacity:0;animation:fadeIn 0.8s var(--ease-out) 0.78s forwards}
