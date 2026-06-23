@@ -859,7 +859,44 @@
     const bgMusic = document.getElementById('bg-music');
     const musicIconPlay = musicToggle?.querySelector('.music-icon-play');
     const musicIconPause = musicToggle?.querySelector('.music-icon-pause');
+    const musicNext = document.getElementById('music-next');
     let isPlaying = false;
+
+    // === Playlist ===
+    const playlist = [
+      '/music/romantic-bg.mp3',   // Track 1 (2:07)
+      '/music/romantic-bg-2.mp3', // Track 2 (4:04)
+      '/music/romantic-bg-3.mp3'  // Track 3 (3:26)
+    ];
+    let currentTrack = parseInt(localStorage.getItem('currentTrack') || '0');
+    
+    function loadTrack(index) {
+      currentTrack = index % playlist.length;
+      bgMusic.src = playlist[currentTrack];
+      bgMusic.load();
+      localStorage.setItem('currentTrack', currentTrack);
+      console.log(`[Music] Loaded track ${currentTrack + 1}/${playlist.length}: ${playlist[currentTrack]}`);
+    }
+    
+    function nextTrack() {
+      const wasPlaying = isPlaying;
+      if (wasPlaying) bgMusic.pause();
+      loadTrack(currentTrack + 1);
+      if (wasPlaying) {
+        bgMusic.play().catch(err => console.error('Play error:', err));
+      }
+    }
+    
+    // Load initial track
+    loadTrack(currentTrack);
+    
+    // Next button click
+    if (musicNext) {
+      musicNext.addEventListener('click', () => {
+        nextTrack();
+        showToast(`Track ${currentTrack + 1}/${playlist.length}`, 'info', 2000);
+      });
+    }
 
     if (musicToggle && bgMusic) {
       const volumeControl = document.getElementById('volume-control');

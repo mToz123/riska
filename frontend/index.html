@@ -374,12 +374,17 @@
       <span></span><span></span><span></span>
     </span>
   </button>
+  <button class="music-next" id="music-next" type="button" aria-label="Lagu berikutnya" title="Next track">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M7 6l10 6-10 6V6zm11 0h2v12h-2V6z"/>
+    </svg>
+  </button>
   <div class="volume-control" id="volume-control" style="display:none">
     <input type="range" id="volume-slider" min="0" max="100" value="30" aria-label="Volume musik">
     <span id="volume-label">30%</span>
   </div>
   <audio id="bg-music" loop preload="none">
-    <source src="/music/romantic-bg.mp3" type="audio/mpeg">
+    <!-- Playlist akan di-set via JS -->
   </audio>
 
   <!-- TOAST -->

@@ -382,6 +382,17 @@ main,header,footer{position:relative;z-index:1}
 }
 
 /* ============================================================
+   MUSIC NEXT BUTTON
+   ============================================================ */
+.music-next{position:fixed;bottom:calc(var(--s-6) + 66px);right:var(--s-6);z-index:109;width:44px;height:44px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:50%;box-shadow:0 4px 16px rgba(0,0,0,0.3);cursor:pointer;display:grid;place-items:center;transition:all 0.3s var(--ease-out);color:var(--ink)}
+.music-next:hover{background:var(--rose-soft);border-color:var(--rose);color:var(--rose);transform:scale(1.1)}
+.music-next:active{transform:scale(0.95)}
+@media(max-width:768px){
+  .music-next{bottom:calc(var(--s-6) + 138px);width:40px;height:40px}
+  .music-next svg{width:16px;height:16px}
+}
+
+/* ============================================================
    VOLUME CONTROL
    ============================================================ */
 .volume-control{position:fixed;bottom:calc(var(--s-6) + 180px);right:var(--s-6);z-index:105;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--r-lg);padding:var(--s-3);box-shadow:0 8px 24px rgba(0,0,0,0.4);width:48px;opacity:0;transform:translateY(10px);transition:opacity 0.3s var(--ease-out),transform 0.3s var(--ease-out);display:flex;flex-direction:column;align-items:center;gap:var(--s-2)}
