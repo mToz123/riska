@@ -17,6 +17,9 @@
   // Client-side gate â€” cocok untuk gallery pribadi 2 orang.
   // Bukan security-grade, tapi cukup untuk nahan tamu ÑÐ»ÑƒÑ‡Ð°Ð¹Ð½Ñ‹Ð¹.
   // Hash sederhana (bukan crypto) supaya tidak kelihatan plaintext di DevTools.
+  const GATE_HASH = '589dfcd1'; // FNV-1a fingerprint of 'riska'
+  const GATE_SESSION_KEY = 'wedding-gallery-unlocked';
+
   // ============================================================
   // TOAST NOTIFICATION SYSTEM
   // ============================================================
