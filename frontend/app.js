@@ -594,9 +594,10 @@
     const modal = document.createElement('div');
     modal.className = 'upload-preview-modal';
     
-    let filesToUpload = [...files];
     const filesMap = new Map(); // Track files by index
     files.forEach((file, i) => filesMap.set(i, file));
+    
+    console.log('[Upload Preview] Initial files:', files.length, Array.from(filesMap.keys()));
     
     const previewHtml = `
       <div class="upload-preview-card">
@@ -646,8 +647,9 @@
     
     document.getElementById('preview-cancel').addEventListener('click', () => modal.remove());
     document.getElementById('preview-confirm').addEventListener('click', () => {
-      modal.remove();
       const finalFiles = Array.from(filesMap.values());
+      console.log('[Upload Preview] Confirm clicked. Files in map:', filesMap.size, 'Final files:', finalFiles.length);
+      modal.remove();
       if (finalFiles.length > 0) {
         uploadPhotos(finalFiles);
       } else {
