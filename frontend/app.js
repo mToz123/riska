@@ -608,23 +608,30 @@
     document.body.appendChild(modal);
     
     const grid = document.getElementById('preview-grid');
-    const filesToUpload = [...files];
+    let filesToUpload = [...files];
+    const thumbs = [];
     
     files.slice(0, 10).forEach((file, index) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const thumb = document.createElement('div');
         thumb.className = 'upload-preview-thumb';
+        thumb.dataset.fileIndex = index;
         thumb.innerHTML = `
           <img src="${e.target.result}" alt="Preview ${index + 1}">
-          <button class="preview-remove" data-index="${index}" title="Hapus">×</button>
+          <button class="preview-remove" title="Hapus">×</button>
           <span class="preview-filename">${file.name}</span>
         `;
         grid.appendChild(thumb);
+        thumbs.push({thumb, fileIndex: index});
         
         thumb.querySelector('.preview-remove').addEventListener('click', () => {
-          const idx = parseInt(thumb.querySelector('.preview-remove').dataset.index);
-          filesToUpload.splice(idx, 1);
+          const idx = parseInt(thumb.dataset.fileIndex);
+          // Remove dari filesToUpload berdasarkan file reference
+          const fileIdx = filesToUpload.findIndex(f => f === files[idx]);
+          if (fileIdx !== -1) {
+            filesToUpload.splice(fileIdx, 1);
+          }
           thumb.remove();
           document.getElementById('preview-confirm').textContent = `Upload ${filesToUpload.length} foto`;
         });
@@ -642,7 +649,11 @@
     document.getElementById('preview-cancel').addEventListener('click', () => modal.remove());
     document.getElementById('preview-confirm').addEventListener('click', () => {
       modal.remove();
-      uploadPhotos(filesToUpload);
+      if (filesToUpload.length > 0) {
+        uploadPhotos(filesToUpload);
+      } else {
+        showToast('Tidak ada foto untuk diupload', 'warning');
+      }
     });
   }
 
