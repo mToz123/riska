@@ -594,6 +594,10 @@
     const modal = document.createElement('div');
     modal.className = 'upload-preview-modal';
     
+    let filesToUpload = [...files];
+    const filesMap = new Map(); // Track files by index
+    files.forEach((file, i) => filesMap.set(i, file));
+    
     const previewHtml = `
       <div class="upload-preview-card">
         <h3>Preview Upload (${files.length} foto)</h3>
@@ -608,8 +612,6 @@
     document.body.appendChild(modal);
     
     const grid = document.getElementById('preview-grid');
-    let filesToUpload = [...files];
-    const thumbs = [];
     
     files.slice(0, 10).forEach((file, index) => {
       const reader = new FileReader();
@@ -623,17 +625,13 @@
           <span class="preview-filename">${file.name}</span>
         `;
         grid.appendChild(thumb);
-        thumbs.push({thumb, fileIndex: index});
         
         thumb.querySelector('.preview-remove').addEventListener('click', () => {
           const idx = parseInt(thumb.dataset.fileIndex);
-          // Remove dari filesToUpload berdasarkan file reference
-          const fileIdx = filesToUpload.findIndex(f => f === files[idx]);
-          if (fileIdx !== -1) {
-            filesToUpload.splice(fileIdx, 1);
-          }
+          filesMap.delete(idx);
           thumb.remove();
-          document.getElementById('preview-confirm').textContent = `Upload ${filesToUpload.length} foto`;
+          const remaining = filesMap.size;
+          document.getElementById('preview-confirm').textContent = `Upload ${remaining} foto`;
         });
       };
       reader.readAsDataURL(file);
@@ -649,8 +647,9 @@
     document.getElementById('preview-cancel').addEventListener('click', () => modal.remove());
     document.getElementById('preview-confirm').addEventListener('click', () => {
       modal.remove();
-      if (filesToUpload.length > 0) {
-        uploadPhotos(filesToUpload);
+      const finalFiles = Array.from(filesMap.values());
+      if (finalFiles.length > 0) {
+        uploadPhotos(finalFiles);
       } else {
         showToast('Tidak ada foto untuk diupload', 'warning');
       }
