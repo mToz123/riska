@@ -342,3 +342,13 @@ main,header,footer{position:relative;z-index:1}
 @media(prefers-reduced-motion:reduce){
   .star-trail-canvas{display:none}
 }
+
+/* ============================================================
+   LOVE HEART PARTICLES — 3D hearts saat drag foto
+   ============================================================ */
+.heart-particles-container{position:fixed;inset:0;pointer-events:none;z-index:90;perspective:1000px}
+.heart-particle{position:absolute;font-size:2rem;color:#ff6b9d;pointer-events:none;animation:heartFloat 3s ease-out forwards;transform-style:preserve-3d;text-shadow:0 2px 8px rgba(255,107,157,0.6)}
+@keyframes heartFloat{0%{opacity:1;transform:translateY(0) translateX(0) rotateZ(0deg) scale(var(--scale, 1))}50%{opacity:0.8;transform:translateY(-150px) translateX(var(--tx, 0)) rotateZ(var(--rotate, 180deg)) scale(calc(var(--scale, 1) * 1.2))}100%{opacity:0;transform:translateY(-300px) translateX(calc(var(--tx, 0) * 1.5)) rotateZ(calc(var(--rotate, 180deg) * 2)) scale(calc(var(--scale, 1) * 0.3))}}
+@media(prefers-reduced-motion:reduce){
+  .heart-particle{display:none}
+}

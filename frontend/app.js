@@ -795,4 +795,71 @@
     }
   }, {passive: true});
 
+  // ============================================================
+  // LOVE HEART PARTICLES — 3D hearts saat drag foto
+  // ============================================================
+  const heartContainer = document.createElement('div');
+  heartContainer.className = 'heart-particles-container';
+  document.body.appendChild(heartContainer);
+
+  function createHeart(x, y) {
+    const heart = document.createElement('div');
+    heart.className = 'heart-particle';
+    heart.textContent = '❤';
+    heart.style.left = x + 'px';
+    heart.style.top = y + 'px';
+    
+    // Random trajectory
+    const randomX = (Math.random() - 0.5) * 100;
+    const randomRotate = Math.random() * 360;
+    const randomScale = 0.5 + Math.random() * 0.8;
+    
+    heart.style.setProperty('--tx', randomX + 'px');
+    heart.style.setProperty('--rotate', randomRotate + 'deg');
+    heart.style.setProperty('--scale', randomScale);
+    
+    heartContainer.appendChild(heart);
+    
+    // Remove after animation
+    setTimeout(() => heart.remove(), 3000);
+  }
+
+  // Spawn hearts on gallery item drag/touch
+  document.addEventListener('DOMContentLoaded', () => {
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    let isDragging = false;
+    let lastHeartTime = 0;
+    
+    document.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.gallery-item')) isDragging = true;
+    });
+    document.addEventListener('mouseup', () => { isDragging = false; });
+    
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging && e.target.closest('.gallery-item')) {
+        const now = Date.now();
+        if (now - lastHeartTime > 100) {
+          createHeart(e.clientX, e.clientY);
+          lastHeartTime = now;
+        }
+      }
+    });
+    
+    // Touch support
+    document.addEventListener('touchstart', (e) => {
+      if (e.target.closest('.gallery-item')) isDragging = true;
+    }, {passive: true});
+    document.addEventListener('touchend', () => { isDragging = false; });
+    
+    document.addEventListener('touchmove', (e) => {
+      if (isDragging && e.touches.length > 0) {
+        const now = Date.now();
+        if (now - lastHeartTime > 100) {
+          createHeart(e.touches[0].clientX, e.touches[0].clientY);
+          lastHeartTime = now;
+        }
+      }
+    }, {passive: true});
+  });
+
 })();
