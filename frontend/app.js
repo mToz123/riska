@@ -866,7 +866,8 @@
     const playlist = [
       '/music/romantic-bg.mp3',   // Track 1 (2:07)
       '/music/romantic-bg-2.mp3', // Track 2 (4:04)
-      '/music/romantic-bg-3.mp3'  // Track 3 (3:26)
+      '/music/romantic-bg-3.mp3', // Track 3 (3:26)
+      '/music/romantic-bg-4.mp3'  // Track 4 (Safira Inema - Wijining Tresna)
     ];
     let currentTrack = parseInt(localStorage.getItem('currentTrack') || '0');
     
