@@ -233,6 +233,14 @@
 
   // === API ===
   async function fetchPhotos() {
+    // Show skeleton while loading
+    const gallery = document.getElementById('gallery');
+    if (gallery && photos.length === 0) {
+      gallery.innerHTML = '<div class="skeleton-cards">' + 
+        Array(6).fill('<div class="skeleton-card"></div>').join('') + 
+        '</div>';
+    }
+    
     try {
       const res = await fetch(`${API}/api/photos`);
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -380,6 +388,11 @@
 
     renderFeatured();
     renderGallery();
+    
+    // Update filter badges setelah render
+    if (typeof window.updateFilterBadges === 'function') {
+      window.updateFilterBadges();
+    }
   }
 
   function renderFeatured() {
@@ -576,6 +589,63 @@
   }
 
   // === Upload ===
+  // === Upload Preview Modal ===
+  function showUploadPreview(files) {
+    const modal = document.createElement('div');
+    modal.className = 'upload-preview-modal';
+    
+    const previewHtml = `
+      <div class="upload-preview-card">
+        <h3>Preview Upload (${files.length} foto)</h3>
+        <div class="upload-preview-grid" id="preview-grid"></div>
+        <div class="upload-preview-actions">
+          <button class="btn btn-ghost" id="preview-cancel">Batal</button>
+          <button class="btn btn-primary" id="preview-confirm">Upload ${files.length} foto</button>
+        </div>
+      </div>
+    `;
+    modal.innerHTML = previewHtml;
+    document.body.appendChild(modal);
+    
+    const grid = document.getElementById('preview-grid');
+    const filesToUpload = [...files];
+    
+    files.slice(0, 10).forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'upload-preview-thumb';
+        thumb.innerHTML = `
+          <img src="${e.target.result}" alt="Preview ${index + 1}">
+          <button class="preview-remove" data-index="${index}" title="Hapus">×</button>
+          <span class="preview-filename">${file.name}</span>
+        `;
+        grid.appendChild(thumb);
+        
+        thumb.querySelector('.preview-remove').addEventListener('click', () => {
+          const idx = parseInt(thumb.querySelector('.preview-remove').dataset.index);
+          filesToUpload.splice(idx, 1);
+          thumb.remove();
+          document.getElementById('preview-confirm').textContent = `Upload ${filesToUpload.length} foto`;
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    
+    if (files.length > 10) {
+      const more = document.createElement('div');
+      more.className = 'upload-preview-more';
+      more.textContent = `+${files.length - 10} foto lagi`;
+      grid.appendChild(more);
+    }
+    
+    document.getElementById('preview-cancel').addEventListener('click', () => modal.remove());
+    document.getElementById('preview-confirm').addEventListener('click', () => {
+      modal.remove();
+      uploadPhotos(filesToUpload);
+    });
+  }
+
   function setupUpload() {
     els.uploadZone.addEventListener('click', () => els.fileInput.click());
     els.uploadZone.addEventListener('keydown', (e) => {
@@ -583,7 +653,7 @@
     });
     els.fileInput.addEventListener('change', (e) => {
       const files = Array.from(e.target.files);
-      if (files.length) uploadPhotos(files);
+      if (files.length) showUploadPreview(files);
       e.target.value = '';
     });
 
@@ -606,7 +676,7 @@
           dragCounter = 0;
           els.uploadZone.classList.remove('drag-over');
           const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-          if (files.length) uploadPhotos(files);
+          if (files.length) showUploadPreview(files);
           else showToast('File harus berupa gambar', 'error');
         }
       })
@@ -676,10 +746,27 @@
     let searchQuery = '';
 
     if (searchInput) {
+      const searchClear = document.getElementById('search-clear');
+      
       searchInput.addEventListener('input', (e) => {
         searchQuery = e.target.value.toLowerCase();
+        // Toggle clear button visibility
+        if (searchClear) {
+          searchClear.style.display = searchQuery ? '' : 'none';
+        }
         applyFilters();
       });
+      
+      // Clear button click
+      if (searchClear) {
+        searchClear.addEventListener('click', () => {
+          searchInput.value = '';
+          searchQuery = '';
+          searchClear.style.display = 'none';
+          applyFilters();
+          searchInput.focus();
+        });
+      }
     }
 
     filterBtns.forEach(btn => {
@@ -690,6 +777,29 @@
         applyFilters();
       });
     });
+
+    function updateFilterBadges() {
+      if (!photos || photos.length === 0) return;
+      const totalCount = photos.length;
+      const pinnedCount = photos.filter(p => p.pinned).length;
+      const recentCount = photos.filter(p => {
+        const age = Date.now() - new Date(p.uploaded).getTime();
+        return age <= 7 * 24 * 60 * 60 * 1000;
+      }).length;
+
+      filterBtns.forEach(btn => {
+        const filter = btn.dataset.filter;
+        let count = 0;
+        if (filter === 'all') count = totalCount;
+        else if (filter === 'pinned') count = pinnedCount;
+        else if (filter === 'recent') count = recentCount;
+        
+        // Update button text dengan badge
+        const originalText = btn.textContent.split(' (')[0]; // Remove existing badge
+        btn.textContent = `${originalText} (${count})`;
+      });
+    }
+    window.updateFilterBadges = updateFilterBadges; // Expose for fetchPhotos
 
     function applyFilters() {
       const items = document.querySelectorAll('.gallery-item');
@@ -718,7 +828,50 @@
     let isPlaying = false;
 
     if (musicToggle && bgMusic) {
-      bgMusic.volume = 0.3; // 30% volume default
+      const volumeControl = document.getElementById('volume-control');
+      const volumeSlider = document.getElementById('volume-slider');
+      const volumeLabel = document.getElementById('volume-label');
+      
+      // Load saved volume from localStorage
+      const savedVolume = localStorage.getItem('musicVolume');
+      if (savedVolume) {
+        bgMusic.volume = parseInt(savedVolume) / 100;
+        if (volumeSlider) volumeSlider.value = savedVolume;
+        if (volumeLabel) volumeLabel.textContent = savedVolume + '%';
+      } else {
+        bgMusic.volume = 0.3; // 30% default
+      }
+      
+      // Show/hide volume control on hover
+      let volumeTimeout;
+      if (volumeControl) {
+        musicToggle.addEventListener('mouseenter', () => {
+          clearTimeout(volumeTimeout);
+          volumeControl.style.display = '';
+          setTimeout(() => volumeControl.classList.add('is-visible'), 10);
+        });
+        
+        const hideVolume = () => {
+          volumeTimeout = setTimeout(() => {
+            volumeControl.classList.remove('is-visible');
+            setTimeout(() => volumeControl.style.display = 'none', 300);
+          }, 300);
+        };
+        
+        musicToggle.addEventListener('mouseleave', hideVolume);
+        volumeControl.addEventListener('mouseenter', () => clearTimeout(volumeTimeout));
+        volumeControl.addEventListener('mouseleave', hideVolume);
+      }
+      
+      // Volume slider change
+      if (volumeSlider && volumeLabel) {
+        volumeSlider.addEventListener('input', (e) => {
+          const val = parseInt(e.target.value);
+          bgMusic.volume = val / 100;
+          volumeLabel.textContent = val + '%';
+          localStorage.setItem('musicVolume', val);
+        });
+      }
       
       musicToggle.addEventListener('click', () => {
         if (isPlaying) {
