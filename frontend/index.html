@@ -332,6 +332,28 @@
   <!-- TOAST -->
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 
+  <!-- PASSWORD GATE -->
+  <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+    <div class="gate-card">
+      <div class="gate-mark" aria-hidden="true">
+        <span class="gate-m">M</span>
+        <span class="gate-heart"></span>
+        <span class="gate-r">R</span>
+      </div>
+      <h1 class="gate-title" id="gate-title">Gallery Pribadi</h1>
+      <p class="gate-sub">Masukkan kode akses untuk membuka galeri Maryadi &amp; Riska.</p>
+      <form class="gate-form" id="gate-form" autocomplete="off">
+        <label class="gate-label" for="gate-input">Kode akses</label>
+        <input class="gate-input" id="gate-input" type="password" inputmode="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="••••••" aria-describedby="gate-error" required>
+        <p class="gate-error" id="gate-error" role="alert" aria-live="polite"></p>
+        <button class="btn btn-primary gate-submit" type="submit">
+          <span class="gate-submit-label">Buka galeri</span>
+        </button>
+      </form>
+      <p class="gate-hint">Kode hanya untuk keluarga &amp; sahabat terdekat.</p>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

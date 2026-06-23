@@ -11,6 +11,108 @@
   const API = '';
   const ANNIVERSARY_DATE = new Date('2024-02-14'); // 14 Februari 2024
 
+  // ============================================================
+  // PASSWORD GATE
+  // ============================================================
+  // Client-side gate — cocok untuk gallery pribadi 2 orang.
+  // Bukan security-grade, tapi cukup untuk nahan tamu случайный.
+  // Hash sederhana (bukan crypto) supaya tidak kelihatan plaintext di DevTools.
+  const GATE_HASH = '589dfcd1'; // FNV-1a fingerprint of 'riska'
+  const GATE_SESSION_KEY = 'wedding-gallery-unlocked';
+
+  const gate = document.getElementById('gate');
+  const gateForm = document.getElementById('gate-form');
+  const gateInput = document.getElementById('gate-input');
+  const gateError = document.getElementById('gate-error');
+  const gateSubmit = gateForm ? gateForm.querySelector('button[type="submit"]') : null;
+
+  // Lightweight hash (FNV-1a 32-bit) — konsisten antara runs, cukup untuk fingerprint sederhana
+  function fingerprint(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h.toString(16);
+  }
+
+  function showError(msg) {
+    if (!gateError) return;
+    gateError.textContent = msg;
+    gateError.classList.add('is-visible');
+  }
+
+  function clearError() {
+    if (!gateError) return;
+    gateError.textContent = '';
+    gateError.classList.remove('is-visible');
+  }
+
+  function unlock() {
+    sessionStorage.setItem(GATE_SESSION_KEY, '1');
+    if (gate) {
+      gate.classList.add('is-leaving');
+      setTimeout(() => { gate.remove(); }, 420);
+    }
+  }
+
+  function lock() {
+    sessionStorage.removeItem(GATE_SESSION_KEY);
+    if (gate) {
+      gate.classList.remove('is-leaving');
+    }
+  }
+
+  function tryUnlock(value) {
+    if (fingerprint(value) === GATE_HASH) {
+      clearError();
+      unlock();
+      return true;
+    }
+    return false;
+  }
+
+  // Init: kalau session ini udah unlock, skip gate
+  if (sessionStorage.getItem(GATE_SESSION_KEY) === '1' && gate) {
+    gate.remove();
+  } else if (gate) {
+    // Trap focus in gate
+    setTimeout(() => gateInput && gateInput.focus(), 80);
+
+    // ESC to lock (back to gate)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sessionStorage.getItem(GATE_SESSION_KEY) === '1') {
+        // Only re-lock if user is on gate (shouldn't happen since gate is removed, but safe)
+      }
+    });
+  }
+
+  // Form submit
+  if (gateForm) {
+    gateForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const value = (gateInput.value || '').trim();
+      if (!value) {
+        showError('Kode belum diisi.');
+        gateInput.focus();
+        return;
+      }
+      if (gateSubmit) gateSubmit.disabled = true;
+      // Tiny artificial delay to avoid instant reveal
+      setTimeout(() => {
+        if (!tryUnlock(value)) {
+          showError('Kode akses salah. Coba lagi ya.');
+          gateInput.select();
+          gateInput.focus();
+          if (gateSubmit) gateSubmit.disabled = false;
+        }
+      }, 250);
+    });
+
+    // Clear error saat user mulai ngetik ulang
+    gateInput.addEventListener('input', clearError);
+  }
+
   const els = {
     gallery:        document.getElementById('gallery'),
     metaCount:      document.getElementById('meta-count'),
