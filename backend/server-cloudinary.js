@@ -1,7 +1,9 @@
 /**
- * Wedding Gallery Backend V17 - Cloudinary Integration
+ * Wedding Gallery Backend V17 - Cloudinary Integration (Vercel-ready)
  * 100 foto / 15 MB per batch
  * Cloud storage via Cloudinary (FREE 25GB)
+ * - Photos → Cloudinary folder `wedding-gallery/`
+ * - Metadata (pinned photo) → Cloudinary context (no filesystem)
  */
 require('dotenv').config();
 const express = require('express');
@@ -9,13 +11,10 @@ const cors = require('cors');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { Readable } = require('stream');
-const fs = require('fs').promises;
-const fsSync = require('fs');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const META_FILE = path.join(__dirname, 'metadata.json');
 
 // Cloudinary config
 cloudinary.config({
@@ -24,23 +23,60 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// === METADATA STORE (pinned photos) ===
-async function loadMeta() {
+// === METADATA STORE via Cloudinary context API (Vercel-compatible) ===
+// "pinned" photo stored as context (pinned=true) on the photo resource itself.
+// No filesystem reads/writes — works in serverless.
+async function getPinned() {
   try {
-    const raw = await fs.readFile(META_FILE, 'utf8');
-    return JSON.parse(raw);
-  } catch {
-    return { pinned: null, photos: {} };
+    const result = await cloudinary.api.resources({
+      type: 'upload',
+      prefix: 'wedding-gallery/',
+      max_results: 500,
+      context: true
+    });
+    const pinned = result.resources.find(r => r.context && r.context.custom && r.context.custom.pinned === 'true');
+    if (!pinned) return null;
+    return path.basename(pinned.public_id);
+  } catch (e) {
+    console.error('getPinned error:', e.message);
+    return null;
   }
 }
 
-async function saveMeta(meta) {
-  await fs.writeFile(META_FILE, JSON.stringify(meta, null, 2), 'utf8');
+async function setPinned(filename) {
+  // Unpin all first
+  const all = await cloudinary.api.resources({
+    type: 'upload',
+    prefix: 'wedding-gallery/',
+    max_results: 500
+  });
+  for (const r of all.resources) {
+    try {
+      await cloudinary.uploader.add_context('pinned=false', r.public_id);
+    } catch (_) {}
+  }
+  if (filename) {
+    const publicId = `wedding-gallery/${filename.replace(/\.[^.]+$/, '')}`;
+    await cloudinary.uploader.add_context('pinned=true', publicId);
+  }
 }
 
-// CORS
+// CORS — allow localhost dev + Vercel production
+const allowedOrigins = [
+  'http://localhost:5500',
+  'http://127.0.0.1:5500',
+  'http://localhost:4000',
+  /^https:\/\/.*\.vercel\.app$/,
+  /^https:\/\/maryadi-riska\.vercel\.app$/
+];
 app.use(cors({
-  origin: ['http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:4000'],
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.some(o => typeof o === 'string' ? o === origin : o.test(origin))) {
+      return cb(null, true);
+    }
+    cb(new Error('CORS: ' + origin + ' not allowed'));
+  },
   credentials: true
 }));
 
@@ -99,13 +135,14 @@ app.get('/api/health', (req, res) => {
 // List all photos
 app.get('/api/photos', async (req, res) => {
   try {
-    const meta = await loadMeta();
-    
+    const pinned = await getPinned();
+
     // Get all photos from Cloudinary
     const result = await cloudinary.api.resources({
       type: 'upload',
       prefix: 'wedding-gallery/',
-      max_results: 500
+      max_results: 500,
+      context: true
     });
 
     const photos = result.resources.map(resource => {
@@ -115,7 +152,7 @@ app.get('/api/photos', async (req, res) => {
         url: resource.secure_url,
         size: resource.bytes,
         uploaded: resource.created_at,
-        pinned: meta.pinned === filename
+        pinned: pinned === filename
       };
     });
 
@@ -126,7 +163,7 @@ app.get('/api/photos', async (req, res) => {
       return new Date(b.uploaded) - new Date(a.uploaded);
     });
 
-    res.json({ success: true, data: photos, pinned: meta.pinned });
+    res.json({ success: true, data: photos, pinned });
   } catch (error) {
     console.error('Error fetching photos:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -190,11 +227,10 @@ app.delete('/api/photos/:filename', async (req, res) => {
 
     await cloudinary.uploader.destroy(publicId);
 
-    // Remove from pinned if it was pinned
-    const meta = await loadMeta();
-    if (meta.pinned === filename) {
-      meta.pinned = null;
-      await saveMeta(meta);
+    // Clear pinned if this was the pinned photo
+    const pinned = await getPinned();
+    if (pinned === filename) {
+      await setPinned(null);
     }
 
     res.json({ success: true, message: 'Photo deleted' });
@@ -208,17 +244,13 @@ app.delete('/api/photos/:filename', async (req, res) => {
 app.put('/api/photos/:filename/pin', async (req, res) => {
   try {
     const { filename } = req.params;
-    const meta = await loadMeta();
+    const current = await getPinned();
 
-    if (meta.pinned === filename) {
-      // Unpin
-      meta.pinned = null;
-      await saveMeta(meta);
+    if (current === filename) {
+      await setPinned(null);
       return res.json({ success: true, pinned: false, message: 'Photo unpinned' });
     } else {
-      // Pin
-      meta.pinned = filename;
-      await saveMeta(meta);
+      await setPinned(filename);
       return res.json({ success: true, pinned: true, message: 'Photo pinned' });
     }
   } catch (error) {

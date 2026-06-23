@@ -6,7 +6,9 @@
 (function() {
   'use strict';
 
-  const API = 'http://localhost:4000';
+  // Use relative path so it works in both localhost dev and Vercel production
+  // (same origin: frontend served from /, backend at /api/* on Vercel)
+  const API = '';
   const ANNIVERSARY_DATE = new Date('2024-02-14'); // 14 Februari 2024
 
   const els = {
