@@ -386,6 +386,22 @@
       img.decoding = 'async';
       item.appendChild(img);
 
+      // === Caption berjalan + date stamp ===
+      // Marquee brand berjalan di atas foto, date stamp static di bawah.
+      const caption = document.createElement('div');
+      caption.className = 'gallery-item-caption';
+      const marquee = document.createElement('div');
+      marquee.className = 'gallery-item-marquee';
+      // Duplicate text untuk seamless loop
+      const marqueeText = 'Maryadi \u2665 Riska \u00B7 14 Februari 2024 \u00B7 Selamanya \u00B7 ';
+      marquee.innerHTML = `<span class="marquee-track">${marqueeText.repeat(4)}</span>`;
+      const dateStamp = document.createElement('div');
+      dateStamp.className = 'gallery-item-date';
+      dateStamp.textContent = `Diunggah ${fmtDate(photo.uploaded)}`;
+      caption.appendChild(marquee);
+      caption.appendChild(dateStamp);
+      item.appendChild(caption);
+
       const overlay = document.createElement('div');
       overlay.className = 'gallery-item-overlay';
 
