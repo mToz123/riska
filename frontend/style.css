@@ -384,12 +384,12 @@ main,header,footer{position:relative;z-index:1}
 /* ============================================================
    MUSIC NEXT BUTTON
    ============================================================ */
-.music-next{position:fixed;bottom:calc(var(--s-6) + 66px);right:var(--s-6);z-index:109;width:44px;height:44px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:50%;box-shadow:0 4px 16px rgba(0,0,0,0.3);cursor:pointer;display:grid;place-items:center;transition:all 0.3s var(--ease-out);color:var(--ink)}
+.music-next{position:fixed;bottom:calc(var(--s-6) + 70px);right:var(--s-6);z-index:109;width:56px;height:56px;background:var(--bg-elevated);border:2px solid var(--border-strong);border-radius:50%;box-shadow:0 4px 16px rgba(0,0,0,0.3);cursor:pointer;display:grid;place-items:center;transition:all 0.3s var(--ease-out);color:var(--ink)}
 .music-next:hover{background:var(--rose-soft);border-color:var(--rose);color:var(--rose);transform:scale(1.1)}
 .music-next:active{transform:scale(0.95)}
 @media(max-width:768px){
-  .music-next{bottom:calc(var(--s-6) + 138px);width:40px;height:40px}
-  .music-next svg{width:16px;height:16px}
+  .music-next{bottom:calc(var(--s-6) + 140px);width:48px;height:48px}
+  .music-next svg{width:20px;height:20px}
 }
 
 /* ============================================================
