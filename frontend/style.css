@@ -315,10 +315,10 @@ main,header,footer{position:relative;z-index:1}
    SEARCH & FILTER BAR
    ============================================================ */
 .gallery-controls{display:flex;gap:var(--s-3);margin-bottom:var(--s-6);flex-wrap:wrap}
-.search-box{flex:1;min-width:240px;position:relative}
-.search-box input{width:100%;padding:var(--s-3) var(--s-4) var(--s-3) var(--s-10);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--ink);font-family:var(--font-sans);font-size:0.9375rem;transition:border-color 0.2s var(--ease-out)}
+.search-box{flex:1;min-width:280px;position:relative}
+.search-box input{width:100%;padding:var(--s-4) var(--s-5) var(--s-4) var(--s-11);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--ink);font-family:var(--font-sans);font-size:1rem;transition:border-color 0.2s var(--ease-out)}
 .search-box input:focus{outline:none;border-color:var(--rose)}
-.search-box svg{position:absolute;left:var(--s-3);top:50%;transform:translateY(-50%);pointer-events:none;opacity:0.5}
+.search-box svg{position:absolute;left:var(--s-4);top:50%;transform:translateY(-50%);pointer-events:none;opacity:0.5;width:18px;height:18px}
 .filter-group{display:flex;gap:var(--s-2)}
 .filter-btn{padding:var(--s-2) var(--s-4);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);font-size:0.875rem;font-weight:500;color:var(--ink-soft);cursor:pointer;transition:all 0.2s var(--ease-out)}
 .filter-btn:hover,.filter-btn.active{background:var(--rose-soft);border-color:var(--rose);color:var(--rose)}
