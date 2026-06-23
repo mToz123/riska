@@ -418,6 +418,10 @@
     els.featuredUnpin.onclick = () => togglePin(currentPinned);
   }
 
+  // Pagination state
+  let displayedCount = 12; // Show 12 photos initially
+  const PHOTOS_PER_PAGE = 12;
+
   function renderGallery() {
     els.gallery.innerHTML = '';
 
@@ -427,7 +431,9 @@
     }
     document.getElementById('empty').hidden = true;
 
-    photos.forEach((photo, index) => {
+    // Render only up to displayedCount
+    const photosToShow = photos.slice(0, displayedCount);
+    photosToShow.forEach((photo, index) => {
       const item = document.createElement('article');
       item.className = 'gallery-item' + (photo.pinned ? ' is-pinned' : '');
       item.setAttribute('role', 'listitem');
@@ -532,6 +538,22 @@
 
       els.gallery.appendChild(item);
     });
+    
+    // Load More button
+    const existingLoadMore = document.getElementById('load-more-btn');
+    if (existingLoadMore) existingLoadMore.remove();
+    
+    if (displayedCount < photos.length) {
+      const loadMoreBtn = document.createElement('button');
+      loadMoreBtn.id = 'load-more-btn';
+      loadMoreBtn.className = 'btn btn-secondary load-more-btn';
+      loadMoreBtn.textContent = `Muat ${Math.min(PHOTOS_PER_PAGE, photos.length - displayedCount)} foto lagi`;
+      loadMoreBtn.addEventListener('click', () => {
+        displayedCount += PHOTOS_PER_PAGE;
+        renderGallery();
+      });
+      els.gallery.appendChild(loadMoreBtn);
+    }
     
     // Apply search/filter after rendering
     if (typeof window.applyFilters === 'function') {

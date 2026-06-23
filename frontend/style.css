@@ -420,3 +420,9 @@ main,header,footer{position:relative;z-index:1}
 @media(max-width:640px){
   .upload-preview-grid{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
 }
+
+/* ============================================================
+   LOAD MORE BUTTON
+   ============================================================ */
+.load-more-btn{grid-column:1/-1;margin-top:var(--s-6);justify-self:center;padding:var(--s-4) var(--s-8);font-size:1rem;font-weight:500;background:var(--surface);border:1px solid var(--border);color:var(--ink);transition:all 0.3s var(--ease-out)}
+.load-more-btn:hover{background:var(--rose-soft);border-color:var(--rose);color:var(--rose);transform:translateY(-2px);box-shadow:0 4px 12px rgba(217,113,138,0.2)}
